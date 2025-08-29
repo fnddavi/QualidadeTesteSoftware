@@ -7,9 +7,17 @@
     "redis-start": "docker run --name redis -p 6379:6379 -d redis:alpine redis-server --requirepass 123",
     "start": "ts-node ./src",
     "dev": "ts-node-dev ./src",
-    "test": "npm run test:up && cross-env NODE_ENV=test jest --detectOpenHandles --forceExit && npm run test:stop",
+    "test": "npm run test:up && dotenv -e .env.test -- jest --detectOpenHandles --forceExit && npm run test:stop",
     "test:up": "docker-compose -f docker-compose.test.yml up -d",
     "test:stop": "docker-compose -f docker-compose.test.yml stop"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "<rootDir>/test/**/*.test.ts"
+    ],
+    "globalSetup": "<rootDir>/test/setup.ts"
   },
   "keywords": [],
   "author": "",
@@ -33,6 +41,7 @@
     "@types/pg": "^8.11.13",
     "@types/supertest": "^6.0.3",
     "cross-env": "^10.0.0",
+    "dotenv-cli": "^10.0.0",
     "jest": "^30.0.5",
     "npm": "^11.5.2",
     "supertest": "^7.1.4",
