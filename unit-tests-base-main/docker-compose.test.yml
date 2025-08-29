@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  # Serviço de Banco de Dados para testes
+  db_test:
+    image: postgres:13-alpine
+    container_name: postgres_test_db
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: testdb
+    ports:
+      - "5433:5432" # Expõe na porta 5433 para não conflitar com um DB local
+
+  # Serviço de Redis para testes
+  redis_test:
+    image: redis:alpine
+    container_name: redis_test_cache
+    command: redis-server --requirepass testpassword
+    ports:
+      - "6380:6379" # Expõe na porta 6380 para não conflitar com um Redis local
