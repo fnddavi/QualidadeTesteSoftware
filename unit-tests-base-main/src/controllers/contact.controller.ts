@@ -1,7 +1,7 @@
 // src/controllers/contact.controller.ts
 import { Request, Response } from "express";
 import pool from "../configs/db";
-import type { UserPayload } from "../types/express";
+import type { UserPayload } from "../types/user-payload";
 
 // --- Criar novo contato ---
 export const createContact = async (req: Request, res: Response): Promise<void> => {

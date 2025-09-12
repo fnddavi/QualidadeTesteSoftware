@@ -4,12 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
+    "lint": "eslint .",
     "redis-start": "docker run --name redis -p 6379:6379 -d redis:alpine redis-server --requirepass 123",
     "start": "ts-node ./src",
     "dev": "ts-node-dev ./src",
-    "test": "npm run test:up && dotenv -e .env.test -- jest --verbose --detectOpenHandles --forceExit && npm run test:stop",
+    "test": "npm run test:up && dotenv -e .env.test -- jest --coverage --detectOpenHandles --forceExit && npm run test:stop",
     "test:up": "docker compose -f docker-compose.test.yml up -d",
-    "test:stop": "docker compose -f docker-compose.test.yml stop"
+    "test:stop": "docker compose -f docker-compose.test.yml stop",
+    "test:ci": "dotenv -e .env.ci.containers -- jest --coverage --detectOpenHandles --forceExit"
   },
   "jest": {
     "preset": "ts-jest",
@@ -18,7 +21,15 @@
     "testMatch": [
       "<rootDir>/test/**/*.test.ts"
     ],
-    "globalSetup": "<rootDir>/test/setup.ts"
+    "globalSetup": "<rootDir>/test/setup.ts",
+    "transform": {
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.json"
+        }
+      ]
+    }
   },
   "keywords": [],
   "author": "",

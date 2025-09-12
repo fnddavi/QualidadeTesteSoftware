@@ -1,0 +1,48 @@
+# .github/workflows/ci.yml
+
+name: CI (Docker) # Nome do workflow
+
+on: # Gatilhos que disparam o workflow
+  push:
+    branches: ["main"] # Dispara em push para a branch 'main'
+  pull_request:
+    branches: ["main"] # Dispara em pull requests para a branch 'main'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs: # Jobs do workflow
+  build-and-test:
+    runs-on: ubuntu-latest # Executa em uma máquina virtual Ubuntu
+    timeout-minutes: 10
+
+    steps: # Passos do job
+      - name: Checkout do código
+        uses: actions/checkout@v4 # Action para clonar o repositório
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3 # Configura o Docker Buildx
+
+      - name: Build dos contêineres
+        run: docker compose -f docker-compose.test.yml build # Constrói as imagens Docker
+
+      - name: Subir contêineres e executar testes
+        run: docker compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from node-test # Sobe os serviços e executa os testes
+
+      - name: Rodar Linter
+        run: docker compose -f docker-compose.test.yml run --rm node-test npm run lint # Executa o linter em um contêiner temporário
+
+      - name: Compilar o código TypeScript (Build)
+        run: docker compose -f docker-compose.test.yml run --rm node-test npm run build # Executa o build da aplicação
+
+      - name: Upload do relatório de cobertura
+        if: success() || failure() # Executa mesmo se os testes falharem
+        uses: actions/upload-artifact@v4 # Action para fazer upload de artefatos
+        with:
+          name: coverage-report
+          path: coverage # Caminho do relatório de cobertura
+
+      - name: Derrubar contêineres
+        if: always() # Executa sempre, mesmo em caso de erro
+        run: docker compose -f docker-compose.test.yml down # Finaliza e remove os contêineres e redes

@@ -1,0 +1,18 @@
+# Dockerfile.test
+
+FROM node:22-alpine
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Copia os arquivos de gerenciamento de pacotes
+COPY package*.json ./
+
+# Instala as dependências de produção e desenvolvimento
+RUN npm ci
+
+# Copia o restante do código-fonte para o contêiner
+COPY . .
+
+# Comando padrão que será executado ao subir o contêiner
+CMD ["npm", "run", "test:ci"]
