@@ -1,48 +1,60 @@
 # .github/workflows/ci.yml
 
-name: CI (Docker) # Nome do workflow
+name: CI (Docker) - unit-tests-base-main # Nome específico para o projeto
 
-on: # Gatilhos que disparam o workflow
+on:
   push:
-    branches: ["main"] # Dispara em push para a branch 'main'
+    branches: ["main"]
+    paths:
+      - "unit-tests-base-main/**" # <-- SÓ RODA se houver alteração nesta pasta
+
   pull_request:
-    branches: ["main"] # Dispara em pull requests para a branch 'main'
+    branches: ["main"]
+    paths:
+      - "unit-tests-base-main/**" # <-- SÓ RODA se houver alteração nesta pasta
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-jobs: # Jobs do workflow
+jobs:
   build-and-test:
-    runs-on: ubuntu-latest # Executa em uma máquina virtual Ubuntu
+    runs-on: ubuntu-latest
     timeout-minutes: 10
 
-    steps: # Passos do job
+    # Define o diretório de trabalho para todos os passos deste job
+    defaults:
+      run:
+        working-directory: ./unit-tests-base-main # <-- DIRETÓRIO DO SEU PROJETO
+
+    steps:
       - name: Checkout do código
-        uses: actions/checkout@v4 # Action para clonar o repositório
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3 # Configura o Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Build dos contêineres
-        run: docker compose -f docker-compose.test.yml build # Constrói as imagens Docker
+        # Este comando agora será executado de dentro da pasta 'unit-tests-base-main'
+        run: docker compose -f docker-compose.test.yml build
 
       - name: Subir contêineres e executar testes
-        run: docker compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from node-test # Sobe os serviços e executa os testes
+        run: docker compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from node-test
 
       - name: Rodar Linter
-        run: docker compose -f docker-compose.test.yml run --rm node-test npm run lint # Executa o linter em um contêiner temporário
+        run: docker compose -f docker-compose.test.yml run --rm node-test npm run lint
 
       - name: Compilar o código TypeScript (Build)
-        run: docker compose -f docker-compose.test.yml run --rm node-test npm run build # Executa o build da aplicação
+        run: docker compose -f docker-compose.test.yml run --rm node-test npm run build
 
       - name: Upload do relatório de cobertura
-        if: success() || failure() # Executa mesmo se os testes falharem
-        uses: actions/upload-artifact@v4 # Action para fazer upload de artefatos
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
-          path: coverage # Caminho do relatório de cobertura
+          name: coverage-report-unit-tests
+          # O caminho do artefato agora é relativo ao diretório de trabalho
+          path: unit-tests-base-main/coverage
 
       - name: Derrubar contêineres
-        if: always() # Executa sempre, mesmo em caso de erro
-        run: docker compose -f docker-compose.test.yml down # Finaliza e remove os contêineres e redes
+        if: always()
+        run: docker compose -f docker-compose.test.yml down
