@@ -1,23 +1,21 @@
-# Dockerfile para aplicação Node.js usando pnpm
-FROM node:20-alpine
+# Dockerfile.test
 
-# Instala pnpm globalmente
-RUN corepack enable && corepack prepare pnpm@latest --activate
+FROM node:22-alpine
 
-# Diretório de trabalho
+# Instala o pnpm globalmente
+RUN npm i -g pnpm
+
+# Define o diretório de trabalho
 WORKDIR /app
 
-# Copia os arquivos de dependências
-COPY package.json pnpm-lock.yaml ./
+# Copia os arquivos de gerenciamento de pacotes
+COPY package*.json pnpm-lock.yaml ./
 
-# Instala as dependências
+# Instala as dependências usando pnpm (equivalente ao npm ci)
 RUN pnpm install --frozen-lockfile
 
-# Copia o restante da aplicação
+# Copia o restante do código-fonte para o contêiner
 COPY . .
 
-# Porta padrão
-EXPOSE 3000
-
-# Comando padrão
-CMD ["pnpm", "dev"]
+# Comando padrão que será executado ao subir o contêiner
+CMD ["npm", "run", "test:ci"]
