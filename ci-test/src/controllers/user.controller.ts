@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import db from "../configs/db";
 import { generateToken, verifyToken } from "../utils/jwt";
-import type { UserPayload } from "../types/express";
+import type { UserPayload } from "../../types/global";
 import redisClient from "../configs/redis";
 import crypto from "crypto";
 
