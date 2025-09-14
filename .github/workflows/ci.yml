@@ -5,11 +5,9 @@ name: CI (Docker) - unit-tests-base-main # Nome específico para o projeto
 on:
   push:
     branches: ["main"]
-    
 
   pull_request:
     branches: ["main"]
-    
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -20,10 +18,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
-
     # Defina aqui o nome da pasta do projeto alvo
     env:
-      PROJECT_FOLDER: unit-tests-base-main
+      PROJECT_FOLDER: ci-test
 
     steps:
       - name: Checkout do código
