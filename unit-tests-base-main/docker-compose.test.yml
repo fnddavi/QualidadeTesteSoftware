@@ -7,7 +7,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
+      POSTGRES_PASSWORD: 2202 # <-- Altere esta linha
       POSTGRES_DB: bdaula
     ports:
       - "5433:5432"
