@@ -5,13 +5,11 @@ name: CI (Docker) - unit-tests-base-main # Nome específico para o projeto
 on:
   push:
     branches: ["main"]
-    paths:
-      - "unit-tests-base-main/**" # <-- SÓ RODA se houver alteração nesta pasta
+    
 
   pull_request:
     branches: ["main"]
-    paths:
-      - "unit-tests-base-main/**" # <-- SÓ RODA se houver alteração nesta pasta
+    
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,10 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
-    # Define o diretório de trabalho para todos os passos deste job
-    defaults:
-      run:
-        working-directory: ./unit-tests-base-main # <-- DIRETÓRIO DO SEU PROJETO
+
+    # Defina aqui o nome da pasta do projeto alvo
+    env:
+      PROJECT_FOLDER: unit-tests-base-main
 
     steps:
       - name: Checkout do código
@@ -35,26 +33,29 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build dos contêineres
-        # Este comando agora será executado de dentro da pasta 'unit-tests-base-main'
         run: docker compose -f docker-compose.test.yml build
+        working-directory: ${{ env.PROJECT_FOLDER }}
 
       - name: Subir contêineres e executar testes
         run: docker compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from node-test
+        working-directory: ${{ env.PROJECT_FOLDER }}
 
       - name: Rodar Linter
         run: docker compose -f docker-compose.test.yml run --rm node-test npm run lint
+        working-directory: ${{ env.PROJECT_FOLDER }}
 
       - name: Compilar o código TypeScript (Build)
         run: docker compose -f docker-compose.test.yml run --rm node-test npm run build
+        working-directory: ${{ env.PROJECT_FOLDER }}
 
       - name: Upload do relatório de cobertura
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report-unit-tests
-          # O caminho do artefato agora é relativo ao diretório de trabalho
-          path: unit-tests-base-main/coverage
+          path: ${{ env.PROJECT_FOLDER }}/coverage
 
       - name: Derrubar contêineres
         if: always()
         run: docker compose -f docker-compose.test.yml down
+        working-directory: ${{ env.PROJECT_FOLDER }}
