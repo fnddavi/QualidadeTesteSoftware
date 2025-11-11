@@ -1,0 +1,51 @@
+# docker-compose.test.yml
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres-test
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2202 # <-- Altere esta linha
+      POSTGRES_DB: bdaula
+    ports:
+      - "5433:5432"
+    volumes:
+      # Monta o script de criação de tabelas para ser executado na inicialização
+      - ./src/configs/comandos.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8-alpine
+    container_name: redis-test
+    restart: always
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  node-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: node-test
+    depends_on:
+      postgres:
+        condition: service_healthy # Espera o Postgres estar saudável
+      redis:
+        condition: service_healthy   # Espera o Redis estar saudável
+    volumes:
+      - ./coverage:/app/coverage   # Mapeia a pasta de relatórios para o host
+    environment:
+      # Aponta para os serviços usando os hostnames internos do Docker
+      - NODE_ENV=ci.containers
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
