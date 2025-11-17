@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 interface Contact {
     id: string;
@@ -11,46 +12,82 @@ interface Contact {
 export function ContactList() {
     const [contacts, setContacts] = useState<Contact[]>([]);
     const navigate = useNavigate();
+    const { signOut, user } = useAuth(); // Podemos pegar dados do user ou função de logout
 
-    // Carrega contatos ao entrar na tela
     useEffect(() => {
-        api.get('/contacts') // Rota definida no contacts.routes.ts
-            .then(response => setContacts(response.data.data || response.data))
-            .catch(error => console.error("Erro ao listar", error));
+        loadContacts();
     }, []);
 
+    async function loadContacts() {
+        try {
+            // Rota GET / definida em contacts.routes.ts
+            const response = await api.get('/contacts');
+            setContacts(response.data.data || response.data);
+        } catch (error) {
+            console.error("Erro ao carregar contatos", error);
+        }
+    }
+
     async function handleDelete(id: string) {
-        if (confirm('Tem certeza que deseja excluir?')) {
+        if (confirm('Tem certeza que deseja excluir este contato?')) {
             try {
                 await api.delete(`/contacts/${id}`);
-                setContacts(contacts.filter(contact => contact.id !== id));
+                // Atualiza a lista localmente removendo o item
+                setContacts(prev => prev.filter(contact => contact.id !== id));
             } catch (error) {
-                alert('Erro ao excluir contato');
+                alert('Erro ao excluir contato.');
             }
         }
     }
 
     return (
-        <div>
-            <h1>Meus Contatos</h1>
-            <button onClick={() => navigate('/contacts/new')}>Novo Contato</button>
+        <div className="container">
+            <header style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem 0' }}>
+                <h2>Contatos de {user?.name || 'Usuário'}</h2>
+                <button onClick={signOut} style={{ background: '#f44336' }}>Sair</button>
+            </header>
 
-            <ul>
-                {contacts.map(contact => (
-                    <li key={contact.id} style={{ margin: '10px 0', border: '1px solid #ccc', padding: '10px' }}>
-                        <strong>{contact.name}</strong> - {contact.phone}
-                        <div style={{ marginTop: '5px' }}>
-                            {/* Passamos o objeto contact inteiro via state porque o backend não tem rota GET /contacts/:id */}
-                            <button onClick={() => navigate(`/contacts/edit/${contact.id}`, { state: contact })}>
-                                Editar
-                            </button>
-                            <button onClick={() => handleDelete(contact.id)} style={{ marginLeft: '10px', color: 'red' }}>
-                                Excluir
-                            </button>
-                        </div>
-                    </li>
-                ))}
-            </ul>
+            <div style={{ marginBottom: '1rem' }}>
+                <button onClick={() => navigate('/contacts/new')}>+ Novo Contato</button>
+            </div>
+
+            {contacts.length === 0 ? (
+                <p>Nenhum contato encontrado.</p>
+            ) : (
+                <ul style={{ listStyle: 'none', padding: 0 }}>
+                    {contacts.map(contact => (
+                        <li key={contact.id} style={{
+                            border: '1px solid #ddd',
+                            borderRadius: '8px',
+                            padding: '1rem',
+                            marginBottom: '0.5rem',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
+                            <div>
+                                <strong>{contact.name}</strong>
+                                <div style={{ color: '#666' }}>{contact.phone}</div>
+                            </div>
+                            <div>
+                                {/* Enviamos o objeto contato via state para evitar nova requisição na edição */}
+                                <button
+                                    onClick={() => navigate(`/contacts/edit/${contact.id}`, { state: contact })}
+                                    style={{ marginRight: '0.5rem' }}
+                                >
+                                    Editar
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(contact.id)}
+                                    style={{ background: '#ffebee', color: '#c62828' }}
+                                >
+                                    Excluir
+                                </button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     );
 }

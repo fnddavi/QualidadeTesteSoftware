@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from "express";
+import { UserPayload } from "../types/express";
 import { verifyToken } from "../utils/jwt"; // agora usa jsonwebtoken
 import redisClient from "../configs/redis";
 import crypto from "crypto";
 
 export async function authMiddleware(
-  req: Request,
+  req: Request & { user?: UserPayload },
   res: Response,
   next: NextFunction
 ) {
@@ -36,7 +37,7 @@ export async function authMiddleware(
     // Verifica e decodifica o token
     const payload = verifyToken(token);
 
-    req.user = payload; // tipado via types/express/index.d.ts
+    req.user = payload; // tipado localmente como UserPayload
     next();
   } catch (err: any) {
     res.status(401).json({

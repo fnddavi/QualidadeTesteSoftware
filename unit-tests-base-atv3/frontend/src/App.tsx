@@ -1,20 +1,32 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext'; // Seu contexto criado
+import { PrivateRoute } from './routes/PrivateRoute';
 import { Login } from './pages/Login';
 import { ContactList } from './pages/ContactList';
 import { ContactForm } from './pages/ContactForm';
+import { Register } from './pages/Register'; // Se tiver registro
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/login" element={<Login />} />
+      {/* O AuthProvider envolve tudo para fornecer o estado de login */}
+      <AuthProvider>
+        <Routes>
+          {/* Rotas Públicas */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* Rotas de Contatos */}
-        <Route path="/contacts" element={<ContactList />} />
-        <Route path="/contacts/new" element={<ContactForm />} />
-        <Route path="/contacts/edit/:id" element={<ContactForm />} />
-      </Routes>
+          {/* Rotas Privadas (Protegidas) */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/contacts" element={<ContactList />} />
+            <Route path="/contacts/new" element={<ContactForm />} />
+            <Route path="/contacts/edit/:id" element={<ContactForm />} />
+          </Route>
+
+          {/* Redirecionamento padrão */}
+          <Route path="*" element={<Navigate to="/contacts" />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
