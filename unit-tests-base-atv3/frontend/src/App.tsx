@@ -1,45 +1,22 @@
-import React from 'react'
-import ProtectedRoute from './components/ProtectedRoute'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Login } from './pages/Login';
+import { ContactList } from './pages/ContactList';
+import { ContactForm } from './pages/ContactForm';
 
-
-export default function App() {
+function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/contacts" replace />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
 
-
-      <Route
-        path="/contacts"
-        element={
-          <ProtectedRoute>
-            <Contacts />
-          </ProtectedRoute>
-        }
-      />
-
-
-      <Route
-        path="/contacts/new"
-        element={
-          <ProtectedRoute>
-            <NewContact />
-          </ProtectedRoute>
-        }
-      />
-
-
-      <Route
-        path="/contacts/edit"
-        element={
-          <ProtectedRoute>
-            <EditContact />
-          </ProtectedRoute>
-        }
-      />
-
-
-    </Routes>
-  )
+        {/* Rotas de Contatos */}
+        <Route path="/contacts" element={<ContactList />} />
+        <Route path="/contacts/new" element={<ContactForm />} />
+        <Route path="/contacts/edit/:id" element={<ContactForm />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
+
+export default App;
