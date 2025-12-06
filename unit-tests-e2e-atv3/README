@@ -1,0 +1,48 @@
+# Setup e Execução dos Testes E2E
+
+Este projeto requer um ambiente com Banco de Dados (Postgres) e Cache (Redis) rodando para que o Backend funcione corretamente durante os testes.
+
+## 1. Infraestrutura (Docker)
+Antes de iniciar a aplicação, suba os containers de dependência (Postgres e Redis).
+O Postgres está configurado na porta **5433** para evitar conflitos locais.
+
+```bash
+cd backend
+docker compose up -d
+```
+
+## 2. Backend
+Em um novo terminal, instale as dependências e inicie o servidor API.
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+*O backend rodará em http://localhost:3001*
+
+## 3. Frontend & Testes
+Em outro terminal, instale as dependências do frontend e execute os testes E2E com Playwright.
+
+```bash
+cd frontend
+npm install
+
+# Instalar navegadores do Playwright (se necessário)
+npx playwright install
+sudo npx playwright install-deps # Apenas Linux (se necessário)
+
+# Executar os testes
+npm run test:e2e
+```
+
+## 4. Relatório
+Para visualizar o relatório HTML dos testes executados:
+
+```bash
+cd frontend
+npm run test:e2e:report
+```
+
+---
+**Nota:** O teste simula o uso completo do sistema, desde o registro até a exclusão do contato, garantindo que todo o fluxo do usuário final está funcional.

@@ -1,5 +1,0 @@
-node_modules/
-tests/
-jest.config.ts
-.env.test
-*.test.*
