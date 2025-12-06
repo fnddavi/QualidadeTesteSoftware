@@ -1,31 +1,60 @@
+// src/server.ts
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import router from "./routes";
 import { errorHandler } from "./middlewares/errorHandler";
 
-// Carrega as variáveis de ambiente definidas no arquivo .env
-dotenv.config();
+// =========================
+// CONFIGURAÇÃO DO AMBIENTE
+// =========================
+dotenv.config({
+  path: process.env.NODE_ENV === "test" ? ".env.test" : ".env",
+  quiet: true,
+});
 
-// Inicializa a aplicação Express
+// =========================
+// CONFIGURAÇÕES GERAIS
+// =========================
 const app = express();
+const PORT = Number(process.env.PORT) || 3001;
 
-// Define a porta utilizada pelo servidor
-const PORT = process.env.PORT || 3000;
+// FRONT permitido (pode vir do .env)
+const FRONT_ORIGIN =
+  process.env.FRONT_ORIGIN || "http://localhost:5173";
 
-// Middleware para permitir o envio de dados em formato JSON no corpo das requisições
+// =========================
+// MIDDLEWARES
+// =========================
+
+// Libera o front-end para consumir a API
+app.use(
+  cors({
+    origin: FRONT_ORIGIN,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
+
+// Permite JSON no corpo das requisições
 app.use(express.json());
 
-// Middleware para permitir o envio de dados em formato URL-encoded no corpo das requisições
+// Permite form-data (x-www-form-urlencoded)
 app.use(express.urlencoded({ extended: true }));
 
-// Middleware para cookies
+// Suporte a cookies
 app.use(cookieParser());
 
-// Rotas principais
+// =========================
+// ROTAS PRINCIPAIS
+// =========================
 app.use("/", router);
 
-// Middleware para rotas não encontradas
+// =========================
+// ROTA 404
+// =========================
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
     success: false,
@@ -33,10 +62,23 @@ app.use((_req: Request, res: Response) => {
   });
 });
 
-// Middleware global de erro (sempre por último)
+// =========================
+// MIDDLEWARE GLOBAL DE ERRO
+// =========================
 app.use(errorHandler);
 
-// Inicializa o servidor na porta definida
-app.listen(PORT, function () {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
+// =========================
+// INICIALIZAÇÃO DO SERVIDOR
+// =========================
+app
+  .listen(PORT, () => {
+    console.log("========================================");
+    console.log(`✅ Servidor rodando em: http://localhost:${PORT}`);
+    console.log(`🌐 CORS liberado para: ${FRONT_ORIGIN}`);
+    console.log("========================================");
+  })
+  .on("error", (err) => {
+    console.error("❌ Erro ao iniciar servidor:", err);
+  });
+
+export default app;

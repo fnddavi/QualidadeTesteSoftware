@@ -1,5 +1,0 @@
-node_modules/
-tests/
-jest.config.ts
-.env.test
-# *.test.*  -> Num ambiente de produção, os arquivos de teste não devem ser incluídos. O que não é o caso neste ambiente.

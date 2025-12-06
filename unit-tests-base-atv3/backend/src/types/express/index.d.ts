@@ -1,6 +1,6 @@
-import { JwtPayload } from "jsonwebtoken";
+import "express";
 
-export interface UserPayload extends JwtPayload {
+export interface UserPayload {
   id: string;
   username: string;
 }
@@ -10,10 +10,6 @@ declare module "express-serve-static-core" {
     user?: UserPayload;
   }
 }
-declare global {
-  namespace Express {
-    interface Request {
-      user?: UserPayload;
-    }
-  }
-}
+/* 
+Certifique-se de que o tsconfig.json inclua a pasta src/types no include
+*/
